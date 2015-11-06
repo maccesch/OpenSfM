@@ -5,7 +5,7 @@ import networkx as nx
 import logging
 
 from opensfm import multiview
-from opensfm import config as cfg
+from opensfm import context
 from opensfm.unionfind import UnionFind
 
 
@@ -77,7 +77,7 @@ def robust_match_fundamental(p1, p2, matches, config):
     p1 = p1[matches[:, 0]][:, :2].copy()
     p2 = p2[matches[:, 1]][:, :2].copy()
 
-    flag = cv2.FM_RANSAC if cfg.get_opencv_version() >= 3 else cv2.cv.CV_FM_RANSAC
+    flag = cv2.FM_RANSAC if context.OPENCV3 else cv2.cv.CV_FM_RANSAC
     F, mask = cv2.findFundamentalMat(p1, p2, flag, config.get('robust_matching_threshold', 0.006), 0.9999)
     inliers = mask.ravel().nonzero()
 
@@ -124,7 +124,9 @@ def robust_match_calibrated(p1, p2, camera1, camera2, matches, config):
 
 
 def robust_match(p1, p2, camera1, camera2, matches, config):
-    if camera1.get('projection_type', 'perspective') == camera2.get('projection_type', 'perspective') == 'perspective':
+    if (camera1.get('projection_type', 'perspective') == 'perspective'
+            and camera2.get('projection_type', 'perspective') == 'perspective'
+            and camera1.get('k1', 0.0) == 0.0):
         return robust_match_fundamental(p1, p2, matches, config)
     else:
         return robust_match_calibrated(p1, p2, camera1, camera2, matches, config)
