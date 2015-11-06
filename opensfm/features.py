@@ -1,9 +1,12 @@
 # -*- coding: utf-8 -*-
 
+# to implement a new feature type just add a new module function called extract_features_<feature_name>(image, config)
+
 import os, sys
 import tempfile
 import time
 import logging
+from inspect import isfunction
 from subprocess import call
 import numpy as np
 import json
@@ -192,17 +195,16 @@ def extract_features(color_image, config):
     color_image = resized_image(color_image, config)
     image = cv2.cvtColor(color_image, cv2.COLOR_RGB2GRAY)
 
-    feature_type = config.get('feature_type','SIFT').upper()
-    if feature_type == 'SIFT':
-        points, desc = extract_features_sift(image, config)
-    elif feature_type == 'SURF':
-        points, desc = extract_features_surf(image, config)
-    elif feature_type == 'AKAZE':
-        points, desc = extract_features_akaze(image, config)
-    elif feature_type == 'HAHOG':
-        points, desc = extract_features_hahog(image, config)
+    possible_features = [f[17:] for f, instance in globals().items()
+                         if f.startswith('extract_features_') and isfunction(instance)]
+
+    feature_type = config.get('feature_type','SIFT').lower()
+
+    if feature_type in possible_features:
+        points, desc = globals()['extract_features_{}'.format(feature_type)](image, config)
+
     else:
-        raise ValueError('Unknown feature type (must be SURF, SIFT, AKAZE or HAHOG)')
+        raise ValueError(u'Unknown feature type (must be one of {})'.format(', '.join(possible_features).upper()))
 
     xs = points[:,0].round().astype(int)
     ys = points[:,1].round().astype(int)
