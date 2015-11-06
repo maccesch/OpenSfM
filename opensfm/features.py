@@ -190,6 +190,16 @@ def extract_features_hahog(image, config):
     logger.debug('Found {0} points in {1}s'.format( len(points), time.time()-t ))
     return points, desc
 
+def extract_features_daisy(image, config):
+    t = time.time()
+
+    points, desc = csfm.daisy(image)
+
+    logger.debug('Found {0} points in {1}s'.format( len(points), time.time()-t ))
+    return points, desc
+
+
+
 def extract_features(color_image, config):
     assert len(color_image.shape) == 3
     color_image = resized_image(color_image, config)
