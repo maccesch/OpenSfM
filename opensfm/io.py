@@ -208,5 +208,35 @@ def mkdir_p(path):
 def json_dumps(data, indent=4, codec='utf-8'):
     return json.dumps(data, indent=indent, ensure_ascii=False).encode(codec)
 
+
 def json_loads(text, codec='utf-8'):
     return json.loads(text.decode(codec))
+
+
+def export_pcd(reconstructions, pcd_path='.'):
+    """
+    Exports every reconstruction as a separate PCD file (native format of PCL) called <pcd_path>/reconstruction_XXX.pcd
+    where XXX is the zero padded index of the reconstruction
+    """
+
+    for reconstruction in reconstructions:
+
+        points = reconstruction['points'].values()
+
+        with open(os.path.join(pcd_path, 'reconstruction_{:03d}.pcd', 'wb')) as f:
+            f.writelines([
+                'VERSION .7',
+                'FIELDS x y z rgb',
+                'SIZE 4 4 4 4',
+                'TYPE F F F F',
+                'COUNT 1 1 1 1',
+                'WIDTH {}'.format(len(points)),
+                'HEIGHT 1',
+                'VIEWPOINT 0 0 0 1 0 0 0',
+                'POINTS {}'.format(len(points)),
+                'DATA ascii',
+            ] + ['{} {} {} {}'.format(p['coordinates'][0],
+                                      p['coordinates'][1],
+                                      p['coordinates'][2],
+                                      reduce(lambda a, b: a*255 + b, p['color'])) for p in points]
+            )
