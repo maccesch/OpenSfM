@@ -141,9 +141,8 @@ def bundle_single_view(graph, reconstruction, shot_id, config):
 
 
 def pairwise_reconstructability(common_tracks, homography_inliers):
-    outliers = common_tracks - homography_inliers
-    outlier_ratio = float(outliers) / common_tracks
-    if outlier_ratio > 0.3:
+    inlier_ratio = float(homography_inliers) / common_tracks
+    if inlier_ratio > 0.3:
         return common_tracks
     else:
         return 0
