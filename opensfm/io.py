@@ -1,5 +1,7 @@
 import os
 import argparse
+import struct
+
 import cv2
 import json
 import numpy as np
@@ -219,12 +221,12 @@ def export_pcd(reconstructions, pcd_path='.'):
     where XXX is the zero padded index of the reconstruction
     """
 
-    for reconstruction in reconstructions:
+    for i, reconstruction in enumerate(reconstructions):
 
         points = reconstruction['points'].values()
 
-        with open(os.path.join(pcd_path, 'reconstruction_{:03d}.pcd', 'wb')) as f:
-            f.writelines([
+        with open(os.path.join(pcd_path, 'reconstruction_{0:03d}.pcd'.format(i)), 'wb') as f:
+            f.write('\n'.join([
                 'VERSION .7',
                 'FIELDS x y z rgb',
                 'SIZE 4 4 4 4',
@@ -238,5 +240,10 @@ def export_pcd(reconstructions, pcd_path='.'):
             ] + ['{} {} {} {}'.format(p['coordinates'][0],
                                       p['coordinates'][1],
                                       p['coordinates'][2],
-                                      reduce(lambda a, b: a*255 + b, p['color'])) for p in points]
+                                      pack_rgb_to_float(*p['color'])) for p in points])
             )
+
+def pack_rgb_to_float(r, g, b):
+    int_rgb = int(r) << 16 | int(g) << 8 | int(b)
+
+    return struct.unpack('f', struct.pack('i', int_rgb))[0]
