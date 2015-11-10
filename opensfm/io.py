@@ -243,7 +243,7 @@ def export_pcd(reconstructions, pcd_path='.'):
                                       pack_rgb_to_float(*p['color'])) for p in points])
             )
 
+
 def pack_rgb_to_float(r, g, b):
     int_rgb = int(r) << 16 | int(g) << 8 | int(b)
-
     return struct.unpack('f', struct.pack('i', int_rgb))[0]
